@@ -4,6 +4,8 @@ import cartSlice from '../cart/cartSlice';
 import productSlice from '../products/productSlice';
 import searchSlice from '../search/searchSlice';
 // import userSlice from '../users/userSlice';
+import orderSlice from '../orders/orderSlice';
+import paySlice from '../pay/paySlice';
 
 
 const store = configureStore({
@@ -12,7 +14,10 @@ const store = configureStore({
         cart: cartSlice,
         // user: userSlice,
         filter:searchSlice,
-        auth:authSlice
+        auth:authSlice,
+        orders:orderSlice,
+        pay:paySlice
+
     }
 })
 
