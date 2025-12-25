@@ -1,34 +1,77 @@
-import { Image } from 'expo-image'
-import { useEffect } from 'react'
-import { FlatList, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native'
-import { useDispatch, useSelector } from 'react-redux'
-import { clearCart, decreaseQuantity, increaseQuantity, loadCart, removeFromCart } from '../../../features/cart/cartSlice'
+import { Image } from 'expo-image';
+import { useRouter } from "expo-router";
+import { useEffect } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { loadToken } from '../../../features/auth/authSlice';
+import { clearCart, decreaseQuantity, increaseQuantity, loadCart, removeFromCart } from '../../../features/cart/cartSlice';
+import { createOrder } from '../../../features/orders/orderSlice';
+
 
 
 
 const index = () => {
+  const router = useRouter();
     const dispatch = useDispatch()
     const {width, height} = useWindowDimensions()
-    const {items,status, totalQuantity,totalAmount} = useSelector((state)=> state.cart)
+    const {items, totalQuantity,totalAmount} = useSelector((state)=> state.cart)
+    const {status,error,token,user} = useSelector(state => state.auth);
+    const {orderRef} =  useSelector((state)=> state.orders) 
+
+console.log(user)
+     // getting user from the asyncStorage
+  useEffect(() => {
+  dispatch(loadToken());
+}, []);
+
+useEffect(() => {
+  if (status!=='loading' && !user) {
+    router.replace("profile/login");
+  }
+}, [user, status]);
+
+// if (status ==='loading') return null;
+console.log(user)
 
     const isTablet = width >576
-   
+const handleSubmit = () => {
+    const checkout = {
+      totalAmount,
+      userId:user.id,
+      items: items.map(item => ({
+      product_id: item.id,
+      product_name: item.title,
+      quantity: item.quantity,
+      price:item.price
+    }))
+    };
+    if(items){
+      dispatch(createOrder(checkout));
+    }
+console.log(checkout);
+  }; 
+
+useEffect(() => {
+  if (orderRef) {
+    router.push({
+      pathname: 'cart/pay',
+      params: {
+        orderRef,
+        totalAmount,
+      },
+    });
+  }
+}, [orderRef, totalAmount, router]);
+  
     useEffect(()=>{
       if(status==='idle'){
         dispatch(loadCart())
       }
     },[])
-    if(!items){
-      return <Text>No Items in the cart</Text>
-    }
   return (
-    <View>
-       <FlatList 
-       style={{marginTop:'20', marginBottom:20}}
-            data={items} 
-            keyExtractor={(item) => item.id}
-            renderItem={({item})=>
-              <View style={styles.container}>
+    <ScrollView>
+      {items.map((item)=>(
+        <View style={styles.container} key={item.id}>
                 <Image style={{height:undefined,width:isTablet?'45%':'30%'}}  source={{uri:`https://api.buywaterh2o.com/${item.image}`}}  />
                 <View >
                 <Text style={{fontWeight:900, fontSize:isTablet?20:15, marginBottom:isTablet?20:5}}>{item.title}</Text>
@@ -67,13 +110,10 @@ const index = () => {
                     <Text style={{color:'red'}}>Remove Item</Text>
                   </Pressable>
                 </View>   
-              </View>
-            } />
-       
-            <Text style={{textAlign:'center',fontWeight:900, fontSize:isTablet?20:15}}>Total Amount: ₦{totalAmount}</Text>
-           
-       
-                 <Pressable
+                </View>   
+      ))}
+      <View style={{flex:2, flexDirection:'row',justifyContent:'space-around',margin:'10%'}}>
+       <Pressable
       onPress={()=>dispatch(clearCart())}
       style={({ pressed }) => [
         styles.button,
@@ -82,7 +122,20 @@ const index = () => {
     >
       <Text style={styles.buttonText}>Clear Cart</Text>
     </Pressable>
-    </View>
+      </View>
+      <Pressable
+      onPress={handleSubmit}
+      style={{backgroundColor:'#1d4ed8'}}
+    >
+      <Text style={{color:'#fff', 
+        textAlign:'center',
+        fontSize:25,
+        fontWeight:'bold',
+        padding:10,
+        borderRadius:10
+        }}>Place Order(₦{totalAmount})</Text>
+    </Pressable>
+    </ScrollView>
   )
 }
 
@@ -107,10 +160,12 @@ plusMinusCon:{
     justifyContent: 'center',
   },
   buttonNormal: {
-    backgroundColor: '#007bff', // Normal background color
+    backgroundColor: '#f00', // Normal background color
+    //backgroundColor: '#007bff', // Normal background color
   },
   buttonPressed: {
-    backgroundColor: '#0056b3', // Darker background when pressed
+    backgroundColor: '#f00', // Darker background when pressed
+    //backgroundColor: '#0056b3', // Darker background when pressed
     opacity: 0.8, // Slightly reduced opacity when pressed
   },
   buttonText: {
@@ -119,6 +174,4 @@ plusMinusCon:{
     fontWeight: 'bold',
   },
 });
-
-
 export default index

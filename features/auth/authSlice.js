@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-//import api from './api/axiosInstance'; // <-- optional if you're using axios wrapper
+import { jwtDecode } from 'jwt-decode';
 
 const TOKEN_KEY = 'userToken';
 const API_URL = 'https://api.buywaterh2o.com/api/auth' 
@@ -80,25 +80,34 @@ export const create = createAsyncThunk(
 /**
  * LOGIN user
  */
+
+// 🔐 Login
 export const login = createAsyncThunk(
   'auth/login',
-  async ({ email, password }) => {
-    const response = await axios.post(`${API_URL}/login`, {
-      email,
-      password,
-    });
+  async ({ email, password }, thunkAPI) => {
+    try {
+      const res = await axios.post(`${API_URL}/login`, {
+        email,
+        password,
+      });
 
-    const data = response.data;
+      // Store token (and possibly user info) in localStorage
+      // localStorage.setItem('token', res.data.token);
+       AsyncStorage.setItem('token',res.data.token);
 
-    if (!data.token) {
-      throw new Error('Login failed: No token returned');
+      // Optional: if your backend sends user data, store it too
+      // localStorage.setItem('user', JSON.stringify(res.data.user));
+
+      return res.data; // Should contain: { user, token }
+    } catch (err) {
+      // Better safe fallback error message
+      return thunkAPI.rejectWithValue(
+        err.response?.data || { message: 'Something went wrong. Please try again.' }
+      );
     }
-
-    await AsyncStorage.setItem(TOKEN_KEY, data.token);
-
-    return data;
   }
 );
+
 
 /**
  * LOGOUT user
@@ -108,16 +117,17 @@ export const logout = createAsyncThunk('auth/logout', async () => {
   return null;
 });
 
+
+
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    users:[],
     token: null,
-    loading: false,
-    status:'idle',
+    user: null,
+    users: [],
+    status: 'idle', // idle | loading | succeeded | failed
     error: null,
-    user:null,
-    isLoaded: false, // after AsyncStorage has been checked
+    isLoaded: false, // AsyncStorage checked
   },
   reducers: {},
 
@@ -125,16 +135,16 @@ const authSlice = createSlice({
     builder
       // LOAD TOKEN
       .addCase(loadToken.pending, state => {
-        state.loading = true;
+        state.status = 'loading';
       })
       .addCase(loadToken.fulfilled, (state, action) => {
         state.token = action.payload;
-        state.loading = false;
+        state.status = 'succeeded';
         state.isLoaded = true;
       })
       .addCase(loadToken.rejected, state => {
-        state.loading = false;
-        state.isLoaded = true;
+        state.status = 'failed';
+        state.error = 'error';
       })
 
       // Get Users
@@ -145,6 +155,7 @@ const authSlice = createSlice({
       .addCase(getUsers.fulfilled, (state, action) => {
         state.status = 'succeeded'
         state.users = action.payload;
+        AsyncStorage.setItem('userProfile', JSON.stringify(action.payload.user));
       })
       .addCase(getUsers.rejected, (state, action) => {
         state.status = 'failed'
@@ -156,12 +167,12 @@ const authSlice = createSlice({
              state.error = null;
            })
           .addCase(updateRole.fulfilled, (state, action) => {
-             state.loading = false;
+             state.status = 'succeeded';
              const index = state.users.findIndex(p => p.id === action.payload.id);
              if (index !== -1) {
                state.users[index] = action.payload;
              }
-             state.currentProduct = action.payload;
+             state.users = action.payload;
            })
            .addCase(updateRole.rejected, (state, action) => {
              state.status = 'failed';
@@ -170,33 +181,49 @@ const authSlice = createSlice({
 
       // REGISTER
       .addCase(create.pending, state => {
-        state.loading = true;
+        state.status = 'loading';
         state.error = null;
       })
       .addCase(create.fulfilled, (state, action) => {
         // state.token = action.payload; // token returned from API
         state.user = action.payload.user
-        state.loading = false;
+        state.status = 'succeeded';
         state.status = 'success'
       })
       .addCase(create.rejected, (state, action) => {
-        state.loading = false;
+        state.status = 'failed';
         state.error = action.error.message;
       })
 
-      // LOGIN
+       /* Login */
+       /* LOGIN */
       .addCase(login.pending, state => {
-        state.loading = true;
+        state.status = 'loading';
         state.error = null;
       })
       .addCase(login.fulfilled, (state, action) => {
-        state.token = action.payload;
-        state.loading = false;
+        // const token = action.payload;
+        state.status = 'succeeded';
+        // state.token = token.token;
+        const { token } = action.payload;
+// console.log(token)
+        try {
+          const decoded = jwtDecode(token);
+          state.user = {
+            id: decoded.id,
+            email: decoded.email,
+            role: decoded.role,
+            token,
+          };
+        } catch (err) {
+          console.error('JWT decode failed:', err);
+        }
       })
       .addCase(login.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message;
+        state.status = 'failed';
+        state.error = action.payload;
       })
+
 
       // LOGOUT
       .addCase(logout.fulfilled, state => {

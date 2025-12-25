@@ -1,24 +1,18 @@
+import AuthGuard from '@/components/AuthGuard';
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { Provider } from "react-redux";
-import store from "../../features/store/store";
-
-
 
 export default function TabLayout() {
   return (
-    <SafeAreaProvider>
-    <Provider store={store}>
+    <AuthGuard>
+
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: "#007bff",
         tabBarInactiveTintColor: "gray",
       }}
-     
     >
-      {/* HOME TAB */}
       <Tabs.Screen
         name="index"
         options={{
@@ -33,7 +27,6 @@ export default function TabLayout() {
         }}
       />
 
-      {/* EXPLORE TAB */}
       <Tabs.Screen
         name="products"
         options={{
@@ -48,7 +41,6 @@ export default function TabLayout() {
         }}
       />
 
-      {/* PROFILE TAB */}
       <Tabs.Screen
         name="profile"
         options={{
@@ -63,7 +55,6 @@ export default function TabLayout() {
         }}
       />
 
-      {/* CART TAB */}
       <Tabs.Screen
         name="cart"
         options={{
@@ -78,19 +69,16 @@ export default function TabLayout() {
         }}
       />
 
-      {/* MORE TAB */}
       <Tabs.Screen
-    name="more"
-    options={{
-    title: "More",
-    tabBarIcon: ({ color }) => (
-      <Ionicons name="menu" color={color} size={24} />
-    ),
-  }}
-/>
-
+        name="more"
+        options={{
+          title: "More",
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="menu" color={color} size={24} />
+          ),
+        }}
+      />
     </Tabs>
-     </Provider>
-     </SafeAreaProvider>
+    </AuthGuard>
   );
 }
