@@ -1,146 +1,118 @@
 import { Image } from "expo-image";
-import { useEffect, useRef, useState } from "react";
-import { Dimensions, FlatList, Platform, StatusBar, StyleSheet, TextInput, View } from "react-native";
+import {
+  Dimensions,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 const { width } = Dimensions.get("window");
+const isTablet = width >= 768;
 
 export default function Index() {
-   const flatListRef = useRef(null);
-  const [index, setIndex] = useState(0);
-
-  // Auto play
-useEffect(() => {
-  const interval = setInterval(() => {
-    const nextIndex = (index + 1) % DATA.length;
-
-    flatListRef.current?.scrollToIndex({
-      index: nextIndex,
-      animated: true,
-    });
-
-    setIndex(nextIndex);
-  }, 3000);
-
-  return () => clearInterval(interval);
-}, [index]);
-
-
-  const DATA = [
-  { id: "1",title:'CPEURW Bottled', image: "https://api.buywaterh2o.com/1759140759282transparent-water-bottle-indoors.jpg" },
-  { id: "2",title:'CPEURW Bottle', image: "https://api.buywaterh2o.com/1759139739507water30cl.png" },
-  { id: "3",title:'CPEURW Dispenser', image: "https://api.buywaterh2o.com/1759140299544water-container.jpg" },
-  // { id: "4", image: "https://api.buywaterh2o.com/1759139544274bottle500ml.avif" },
-];
-
-  const [searchQuery, setSearchQuery] = useState('');
-    // Function to handle the text change and potentially filter data
-  const handleSearch = (text) => {
-    setSearchQuery(text);
-    // You can add your data filtering logic here
-    // For example, filter a list of items based on the 'text'
-  };
   return (
-     <View style={styles.safeArea}>
-      <Image source={require('../../assets/images/logo.jpg')} style={{width:"100%",height:'40%'}} />
-    <View style={{}}>
-        <TextInput
-        style={styles.searchInput}
-        placeholder="Search..."
-        onChangeText={handleSearch}
-        value={searchQuery}
-        autoCapitalize="none"
-        autoCorrect={false}
+    <ScrollView
+      style={styles.safeArea}
+      contentContainerStyle={{ paddingBottom: 30 }}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Banner */}
+      <Image
+        source={require("../../assets/images/DD.jpg")}
+        style={styles.banner}
       />
-      
 
-     <FlatList
-  ref={flatListRef}
-  data={DATA}
-  horizontal
-  pagingEnabled
-  showsHorizontalScrollIndicator={false}
-  keyExtractor={(item) => item.id}
-  onMomentumScrollEnd={(e) => {
-    const newIndex = Math.round(
-      e.nativeEvent.contentOffset.x / width
-    );
-    setIndex(newIndex);
-  }}
-  getItemLayout={(data, index) => ({
-    length: width, // width of one item
-    offset: width * index,
-    index,
-  })}
-  renderItem={({ item }) => (
-    <View style={styles.slide}>
-      <Image source={{ uri: item.image }} style={styles.image} />
-      {/* <Text style={{color:'1d4ed8'}}>{item.title}</Text> */}
-    </View>
-  )}
-/>
-
-      {/* Pagination Dots */}
-      <View style={styles.pagination}>
-        {DATA.map((_, i) => (
-          <View
-            key={i}
-            style={[
-              styles.dot,
-              i === index && styles.activeDot,
-            ]}
-          />
-        ))}
+      {/* Product Images Row */}
+      <View style={styles.row}>
+        <Image source={require("../../assets/images/B2.jpg")} style={styles.smallImage} />
+        <Image source={require("../../assets/images/D1.jpg")} style={styles.smallImage} />
+        <Image source={require("../../assets/images/Bag.jpg")} style={styles.largeImage} />
+        <Image source={require("../../assets/images/B1.jpg")} style={styles.largeImage} />
       </View>
 
-    </View>
-    </View>
+      {/* Text + Image Section */}
+      <View style={styles.bottomRow}>
+        <View style={styles.textBox}>
+          <Text style={styles.title}>CPEURW</Text>
+          <Text style={styles.text}>Your Trusted Partner in Pure Hydration.</Text>
+          <Text style={styles.text}>
+            From sachets to bottles to dispensers, we offer clean, affordable,
+            and certified drinking water.
+          </Text>
+        </View>
+
+        <Image
+          source={require("../../assets/images/W.jpg")}
+          style={styles.sideImage}
+        />
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    paddingTop: 10,
+    backgroundColor: "#fff",
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
-  searchInput: {
-    height: 50,
-    borderColor: '#1d4ed8',
-    backgroundColor:'white',
-    borderWidth: 1,
-    margin: 10,
-    paddingLeft: 15,
-    borderRadius: 10,
-    fontSize: 16,
-  },
-   slide: {
-    width,
-    height: 220,
-    padding: 16,
-  },
-  image: {
+
+  banner: {
     width: "100%",
-    height: "100%",
-    borderRadius: 16,
+    height: isTablet ? 350 : 240,
   },
-  pagination: {
+
+  row: {
     flexDirection: "row",
-    justifyContent: "center",
-    marginTop: 8,
+    justifyContent: "space-around",
+    marginTop: 20,
+    paddingHorizontal: 10,
   },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#ccc",
-    marginHorizontal: 4,
+
+  smallImage: {
+    width: width * 0.18,
+    height: isTablet ? 120 : 90,
+    resizeMode: "contain",
   },
-  activeDot: {
-    backgroundColor: "#000",
+
+  largeImage: {
+    width: width * 0.18,
+    height: isTablet ? 160 : 120,
+    resizeMode: "contain",
   },
-   safeArea: {
-    flex: 1,
-    backgroundColor: '#fff',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0, 
-    // On Android, add status bar height to avoid overlap
+
+  bottomRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 30,
+    paddingHorizontal: 16,
+  },
+
+  textBox: {
+    width: "45%",
+  },
+
+  title: {
+    textAlign: "center",
+    fontSize: isTablet ? 18 : 16,
+    fontWeight: "900",
+    color: "#1d4ed8",
+  },
+
+  text: {
+    textAlign: "center",
+    color: "#1d4ed8",
+    marginTop: 6,
+    fontSize: isTablet ? 15 : 13,
+  },
+
+  sideImage: {
+    width: "50%",
+    height: isTablet ? 220 : 160,
+    resizeMode: "contain",
   },
 });

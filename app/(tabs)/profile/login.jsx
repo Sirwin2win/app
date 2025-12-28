@@ -50,7 +50,14 @@ const Login = () => {
         keyboardType="email-address"
         style={styles.input}
       />
-
+        {/* Forgot Passord */}
+        <Text
+        onPress={() => router.push('/profile/sendMail')}
+        style={styles.link}
+      >
+        forgot password?
+      </Text>
+      {/* Password  */}
       <TextInput
         placeholder="**************"
         value={password}

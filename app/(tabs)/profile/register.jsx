@@ -19,7 +19,7 @@ const register = () => {
        const [password, setPassword] = useState('');
      
         const onRegister = () => {
-         console.log(name,address,phone,email, password)
+        //  console.log(name,address,phone,email, password)
          dispatch(create({ name,address,phone,email, password }));
        };
 

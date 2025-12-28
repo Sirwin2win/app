@@ -31,7 +31,7 @@ useEffect(() => {
 }, [user, status]);
 
 // if (status ==='loading') return null;
-console.log(user)
+// console.log(user)
 
     const isTablet = width >576
 const handleSubmit = () => {
@@ -48,7 +48,7 @@ const handleSubmit = () => {
     if(items){
       dispatch(createOrder(checkout));
     }
-console.log(checkout);
+// console.log(checkout);
   }; 
 
 useEffect(() => {

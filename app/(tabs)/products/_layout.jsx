@@ -12,9 +12,9 @@ export default function ProductStack() {
       <Stack.Screen name="[id]" options={{
          title: "Product Details",
          headerTintColor: "#1d4ed8",
-         headerRight: () =>  <><Ionicons name="cart" size={25} color="#1d4ed8" /><Text style={{
+         headerRight: () =>  <><Ionicons name="cart"  size={30} color="#1d4ed8" /><Text style={{
           color:'#f00',
-          marginLeft:-18,
+          // marginRight:50,
           marginTop:35,
           fontSize:15,
           fontWeight:'bold'

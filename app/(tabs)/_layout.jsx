@@ -62,8 +62,10 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? "cart" : "cart-outline"}
-              size={24}
+              size={20}
               color={color}
+              // style={{marginRight:50}}
+              
             />
           ),
         }}
